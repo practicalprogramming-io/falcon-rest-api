@@ -1,7 +1,7 @@
 import falcon
 import unittest
-import json
 from falcon import testing
+from falcon_example import server
 
 try:
     from urllib.parse import urlencode
@@ -19,10 +19,6 @@ class TestBase(unittest.TestCase):
         env = falcon.testing.create_environ(path=path, **kwargs)
         return self.app(env, self.srmock)
 
-    def simulate_head(self, *args, **kwargs):
-        kwargs['method'] = 'HEAD'
-        return self.simulate_request(*args, **kwargs)
-
     def simulate_get(self, *args, **kwargs):
         kwargs['method'] = 'GET'
         return self.simulate_request(*args, **kwargs)
@@ -35,31 +31,53 @@ class TestBase(unittest.TestCase):
         kwargs['method'] = 'PUT'
         return self.simulate_request(*args, **kwargs)
 
-    def simulate_patch(self, *args, **kwargs):
-        kwargs['method'] = 'PATCH'
-        return self.simulate_request(*args, **kwargs)
-
     def simulate_delete(self, *args, **kwargs):
         kwargs['method'] = 'DELETE'
         return self.simulate_request(*args, **kwargs)
 
 
-class TestUser(TestBase):
+class TestCars(TestBase):
 
     def setUp(self):
-        super(TestRegister, self).setUp()
-        self.entry_path = '/register/'
+        super(TestCars, self).setUp()
 
     def tearDown(self):
-        super(TestRegister, self).tearDown()
+        super(TestCars, self).tearDown()
 
-    def test_register_user(self):
+    def get_car(self):
+        path = '/cars/{0}/'.format(self.cars_id)
+        self.simulate_get(path)
+        self.assertEqual(self.srmock.status, falcon.HTTP_200)
+
+    def post_car(self):
+        path = '/cars/'
         body = urlencode({
-            'username': 'new_user',
-            'email': 'email',
-            'password': 'password',
-            'location': 'Tucson, AZ'
+            'make': 'Jeep',
+            'model': 'Wrangler',
+            'year': '2004',
+            'color': 'Black'
         })
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
-        self.simulate_post(self.entry_path, body=body, headers=headers)
+        response = self.simulate_post(path, body=body, headers=headers)
+        self.cars_id = response[0]['cars_id']
         self.assertEqual(self.srmock.status, falcon.HTTP_201)
+
+    def put_car(self):
+        path = '/cars/{0}/'.format(self.cars_id)
+        body = urlencode({
+            'color': 'Red'
+        })
+        headers = {"Content-Type": "application/x-www-form-urlencoded"}
+        self.simulate_put(path, body=body, headers=headers)
+        self.assertEqual(self.srmock.status, falcon.HTTP_200)
+
+    def delete_car(self):
+        path = '/cars/{0}/'.format(self.cars_id)
+        self.simulate_delete(path)
+        self.assertEqual(self.srmock.status, falcon.HTTP_200)
+
+    def test_cars(self):
+        self.post_car()
+        self.get_car()
+        self.put_car()
+        self.delete_car()
