@@ -4,7 +4,7 @@ import falcon
 from falcon_example import database
 
 
-class CarsRoutes:
+class CarsViews:
 
     def __init__(self, db):
         self.db = db
@@ -102,6 +102,6 @@ class CarsRoutes:
 
 
 server = falcon.API()
-cars_routes = CarsRoutes(database)
-server.add_route('/cars/', cars_routes)
-server.add_route('/cars/{cars_id}/', cars_routes)
+cars_views = CarsViews(database)
+server.add_route('/cars/', cars_views)
+server.add_route('/cars/{cars_id}/', cars_views)
